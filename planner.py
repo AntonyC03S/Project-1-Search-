@@ -4,7 +4,6 @@ import sys
 def UCS(grid, robot_location, path, rows, cols):
     relations_dictionary = {}
     relations_dictionary[(robot_location[0],robot_location[1])] = None
-    print(robot_location)
     explored = []
     queue = [robot_location]
     nodes_generated = 0
@@ -19,13 +18,14 @@ def UCS(grid, robot_location, path, rows, cols):
         nodes_expanded = nodes_expanded + 1
 
         # Breaking the infinite loop
-        if nodes_expanded > 1000000:
-            return []
+        if nodes_expanded > 1000 or len(queue) == 0:
+            return [], robot_location, grid, nodes_generated, nodes_expanded
         
+    
     grid = CleanMess(node,robot_location, grid)    
     path = PathDecoder(relations_dictionary, path, node) 
     robot_location = node
-    return path, robot_location
+    return path, robot_location, grid, nodes_generated, nodes_expanded
 
 
 def DFS():
@@ -56,19 +56,19 @@ def GenerateSideNodes(node, grid, rows, cols, explored, queue, nodes_generated ,
     x = node[0]
     y = node[1]
     tuple_node = (x, y)
-    if WithInBound([x,y+1], rows, cols) and IsNotBlocked([x,y+1], grid) and ([x,y+1] not in explored):
+    if WithInBound([x,y+1], rows, cols) and IsNotBlocked([x,y+1], grid) and ([x,y+1] not in explored) and ([x,y+1] not in queue):
         queue.append([x,y+1])
         nodes_generated = nodes_generated +1
         relations_dictionary[(x,y+1)] = tuple_node
-    if WithInBound([x+1,y], rows, cols) and IsNotBlocked([x+1,y], grid) and ([x+1,y] not in explored):
+    if WithInBound([x+1,y], rows, cols) and IsNotBlocked([x+1,y], grid) and ([x+1,y] not in explored) and ([x+1,y] not in queue):
         queue.append([x+1,y])
         nodes_generated = nodes_generated +1
         relations_dictionary[(x+1,y)] = tuple_node
-    if WithInBound([x,y-1], rows, cols) and IsNotBlocked([x,y-1], grid) and ([x,y-1] not in explored):
+    if WithInBound([x,y-1], rows, cols) and IsNotBlocked([x,y-1], grid) and ([x,y-1] not in explored) and ([x,y-1] not in queue):
         queue.append([x,y-1])
         nodes_generated = nodes_generated +1
         relations_dictionary[(x,y-1)] = tuple_node
-    if WithInBound([x-1,y], rows, cols) and IsNotBlocked([x-1,y], grid) and ([x-1,y] not in explored):
+    if WithInBound([x-1,y], rows, cols) and IsNotBlocked([x-1,y], grid) and ([x-1,y] not in explored) and ([x-1,y] not in queue):
         queue.append([x-1,y])
         nodes_generated = nodes_generated +1
         relations_dictionary[(x-1,y)] = tuple_node
@@ -77,8 +77,6 @@ def GenerateSideNodes(node, grid, rows, cols, explored, queue, nodes_generated ,
 
 def PathDecoder(relations_dictionary, path, node):
     node = (node[0], node[1])
-    print(node)
-    print(relations_dictionary)
     path.append('V')
     next = relations_dictionary[node]
     while next is not None:
@@ -138,17 +136,24 @@ def main():
     #Find the location of dirty spot
     if algorithm == "uniform-cost":
         all_path=[]
-        side_path = []
+        total_nodes_generated = 0
+        total_nodes_expanded = 0
         i = 0
-        while i != 1:
-            side_path, robot_location = UCS(grid, robot_location,side_path, rows, cols)
+        while i != 20:
+            i = i + 1            # Make sure it does not fo infinity      
+            side_path = []
+            side_path, robot_location, grid, nodes_generated, nodes_expanded = UCS(grid, robot_location,side_path, rows, cols)
             if len(side_path) == 0:
                 break
-            i =+ 1
-            
-        all_path.extend(side_path)
-        print(all_path)
+            all_path.extend(side_path)
+            total_nodes_generated = total_nodes_generated+nodes_generated
+            total_nodes_expanded = total_nodes_expanded+nodes_expanded
 
+        print(all_path)
+        for i in all_path:
+            print(i)
+        print(total_nodes_generated , "nodes generated")
+        print(total_nodes_expanded , "nodes expanded")
 
     elif algorithm == "depth-first":
         DFS()
