@@ -1,19 +1,42 @@
 import sys
+"""
+planner.py
+Generates a path for the robot in the Vacuum World.
 
+Usage:
+    python3 planner.py [ algorithm ] [ world-file ]
+
+Example:
+    python3 planner.py uniform-cost tiny-1.txt
+
+Parameters:
+- algorithm (string): pathing algorithm (uniform-cost or depth-first)
+- world-file (string): the txt file of the Vacuum World
+
+
+Outputs to stdout:
+1. Path of the robot
+2. Number of nodes generated
+3. Number of nodes expanded
+"""
+
+
+"""--------------------Path functions------------------"""
 
 def UCS(grid, robot_location, path, rows, cols):
+    # Setup optimal path for path function
     relations_dictionary = {}
     relations_dictionary[(robot_location[0],robot_location[1])] = None
+
+    # Setup searching algorithm 
     explored = []
     queue = [robot_location]
     nodes_generated = 0
     nodes_expanded = 0
     while len(queue) != 0:
         node = queue.pop(0)
-        
         if IsGoal(node, grid): 
             break
-        
         explored, queue, nodes_generated,relations_dictionary = GenerateSideNodes(node, grid, rows, cols, explored, queue, nodes_generated,relations_dictionary)    
         nodes_expanded = nodes_expanded + 1
 
@@ -28,9 +51,13 @@ def UCS(grid, robot_location, path, rows, cols):
     return path, robot_location, grid, nodes_generated, nodes_expanded
 
 
+#
 def DFS(grid, robot_location, path, rows, cols):
+    # Setup optimal path for path function
     relations_dictionary = {}
     relations_dictionary[(robot_location[0],robot_location[1])] = None
+
+    # Setup searching algorithm 
     explored = []
     stack = [robot_location]
     nodes_generated = 0
@@ -54,6 +81,7 @@ def DFS(grid, robot_location, path, rows, cols):
     robot_location = node
     return path, robot_location, grid, nodes_generated, nodes_expanded
 
+"""--------------------Helper functions------------------"""
 
 def WithInBound(pos, rows, cols):
     if pos[0]>= cols or pos[0]< 0:
@@ -94,7 +122,6 @@ def GenerateSideNodes(node, grid, rows, cols, explored, queue, nodes_generated ,
         queue.append([x-1,y])
         nodes_generated = nodes_generated +1
         relations_dictionary[(x-1,y)] = tuple_node
-
     return explored, queue, nodes_generated,relations_dictionary
 
 def PathDecoder(relations_dictionary, path, node):
@@ -123,6 +150,7 @@ def CleanMess(node,robot_location, grid):
     grid[robot_location[1]][robot_location[0]] = "_"
     return grid
 
+"""--------------------Main functions------------------"""
 
 def main():
     if len(sys.argv) != 3:
