@@ -71,7 +71,7 @@ def GenerateSideNodes(node, grid, rows, cols, explored, queue, nodes_generated ,
     if WithInBound([x-1,y], rows, cols) and IsNotBlocked([x-1,y], grid) and ([x-1,y] not in explored):
         queue.append([x-1,y])
         nodes_generated = nodes_generated +1
-        relations_dictionary[(x+1,y)] = tuple_node
+        relations_dictionary[(x-1,y)] = tuple_node
 
     return explored, queue, nodes_generated,relations_dictionary
 
@@ -83,13 +83,13 @@ def PathDecoder(relations_dictionary, path, node):
     next = relations_dictionary[node]
     while next is not None:
         if node[0] > next[0]:
-            path.append('W')
-        elif node[0] < next[0]:
             path.append('E')
+        elif node[0] < next[0]:
+            path.append('W')
         elif node[1] > next[1]:
-            path.append('N')
-        elif node[1] < next[1]:
             path.append('S')
+        elif node[1] < next[1]:
+            path.append('N')
         else:
             print("Error:Path Decoder")
             return []             # Something has gone very wrong
@@ -139,11 +139,13 @@ def main():
     if algorithm == "uniform-cost":
         all_path=[]
         side_path = []
-        while True:
+        i = 0
+        while i != 1:
             side_path, robot_location = UCS(grid, robot_location,side_path, rows, cols)
             if len(side_path) == 0:
                 break
-            print(grid)
+            i =+ 1
+            
         all_path.extend(side_path)
         print(all_path)
 
