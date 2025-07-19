@@ -28,9 +28,31 @@ def UCS(grid, robot_location, path, rows, cols):
     return path, robot_location, grid, nodes_generated, nodes_expanded
 
 
-def DFS():
+def DFS(grid, robot_location, path, rows, cols):
+    relations_dictionary = {}
+    relations_dictionary[(robot_location[0],robot_location[1])] = None
+    explored = []
+    stack = [robot_location]
+    nodes_generated = 0
+    nodes_expanded = 0
+    while len(stack) != 0:
+        node = stack.pop()
+        
+        if IsGoal(node, grid): 
+            break
+        
+        explored, stack, nodes_generated,relations_dictionary = GenerateSideNodes(node, grid, rows, cols, explored, stack, nodes_generated,relations_dictionary)    
+        nodes_expanded = nodes_expanded + 1
 
-    print()
+        # Breaking the infinite loop
+        if nodes_expanded > 1000 or len(stack) == 0:
+            return [], robot_location, grid, nodes_generated, nodes_expanded
+        
+    
+    grid = CleanMess(node,robot_location, grid)    
+    path = PathDecoder(relations_dictionary, path, node) 
+    robot_location = node
+    return path, robot_location, grid, nodes_generated, nodes_expanded
 
 
 def WithInBound(pos, rows, cols):
@@ -102,9 +124,6 @@ def CleanMess(node,robot_location, grid):
     return grid
 
 
-
-
-
 def main():
     if len(sys.argv) != 3:
         print("Usage: python3 planner.py <algorithm> <world-file> ")
@@ -148,19 +167,29 @@ def main():
             all_path.extend(side_path)
             total_nodes_generated = total_nodes_generated+nodes_generated
             total_nodes_expanded = total_nodes_expanded+nodes_expanded
-
-        print(all_path)
-        for i in all_path:
-            print(i)
-        print(total_nodes_generated , "nodes generated")
-        print(total_nodes_expanded , "nodes expanded")
-
+        
     elif algorithm == "depth-first":
-        DFS()
-        print("DFS")
+        all_path=[]
+        total_nodes_generated = 0
+        total_nodes_expanded = 0
+        i = 0
+        while i != 20:
+            i = i + 1            # Make sure it does not fo infinity      
+            side_path = []
+            side_path, robot_location, grid, nodes_generated, nodes_expanded = DFS(grid, robot_location, side_path, rows, cols)
+            if len(side_path) == 0:
+                break
+            all_path.extend(side_path)
+            total_nodes_generated = total_nodes_generated+nodes_generated
+            total_nodes_expanded = total_nodes_expanded+nodes_expanded
 
     else:
         print("Algorithm is not uniform-cost or depth-first")
+
+    for i in all_path:
+        print(i)
+    print(total_nodes_generated , "nodes generated")
+    print(total_nodes_expanded , "nodes expanded")
 
 
 if __name__ == "__main__":
